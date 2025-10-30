@@ -1,0 +1,21 @@
+# Maven
+/target/
+/.mvn/
+
+# IDEs
+/.idea/
+*.iml
+/.vscode/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Test debug artifacts (build output)
+/target/test-debug/
+/target/surefire-reports/test-debug/
+
+# JetBrains
+out/

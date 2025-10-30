@@ -25,6 +25,14 @@
       <scope>test</scope>
     </dependency>
 
+    <!-- TestNG: required by tests under src/test/java using TestNG annotations -->
+    <dependency>
+      <groupId>org.testng</groupId>
+      <artifactId>testng</artifactId>
+      <version>7.8.0</version>
+      <scope>test</scope>
+    </dependency>
+
     <!-- WebDriverManager -->
     <dependency>
       <groupId>io.github.bonigarcia</groupId>
@@ -45,11 +53,57 @@
         </configuration>
       </plugin>
 
+      <!-- Create CI-friendly artifact containing debug outputs from tests -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>package-test-debug</id>
+            <phase>verify</phase>
+            <configuration>
+              <target>
+                <!-- Ensure output dirs exist -->
+                <mkdir dir="${project.build.directory}/surefire-reports/test-debug"/>
+                <!-- Zip the debug folder if present -->
+                <zip destfile="${project.build.directory}/test-debug.zip" whenempty="true">
+                  <fileset dir="${project.build.directory}/test-debug"/>
+                </zip>
+                <!-- Copy the zipped artifact into surefire-reports for CI artifact collection -->
+                <copy file="${project.build.directory}/test-debug.zip" todir="${project.build.directory}/surefire-reports/test-debug" failonerror="false"/>
+                <!-- Also copy raw files so CI that prefers raw folders can pick them up -->
+                <copy todir="${project.build.directory}/surefire-reports/test-debug" failonerror="false">
+                  <fileset dir="${project.build.directory}/test-debug" includes="**/*"/>
+                </copy>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
       <!-- JUnit 5 Surefire plugin -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.2.5</version>
+        <dependencies>
+          <!-- Ensure Surefire uses the TestNG provider so TestNG tests and suites are executed -->
+          <dependency>
+            <groupId>org.apache.maven.surefire</groupId>
+            <artifactId>surefire-testng</artifactId>
+            <version>3.2.5</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <!-- Run TestNG suite explicitly so TestNG tests are executed under Surefire -->
+          <suiteXmlFiles>
+            <suiteXmlFile>testng.xml</suiteXmlFile>
+          </suiteXmlFiles>
+        </configuration>
       </plugin>
     </plugins>
   </build>
