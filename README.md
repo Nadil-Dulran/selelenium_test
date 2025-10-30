@@ -28,6 +28,11 @@ On macOS you generally don't have `xvfb`. Two options:
 Then run:
 
 ```bash
+mvn test
+```
+or
+
+```bash
 mvn -B -DtrimStackTrace=false test
 ```
 
