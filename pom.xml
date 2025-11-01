@@ -9,6 +9,10 @@
   <version>1.0-SNAPSHOT</version>
   <name>Selenium Automation Project</name>
   <url>https://nadil-dulran.github.io/selelenium_test/</url>
+  <description>
+    End-to-end UI tests for Nadil Dulran's portfolio site using Selenium 4, TestNG, and Maven.
+    Generates Surefire HTML and ExtentReports, and publishes the Maven Site (with XRef) via GitHub Pages.
+  </description>
 
   <properties>
     <!-- ensure builds are reproducible across platforms by fixing encoding -->
