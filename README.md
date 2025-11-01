@@ -100,21 +100,34 @@ After running tests, you have several report options:
 
 In CI, you can upload the `target/site` folder or the `emailable-report.html` as an artifact for download.
 
-### Download/open from GitHub Actions
+### CI: site build and downloadable artifacts
 
-The workflow uploads these artifacts on every run:
+The CI workflow now runs a full Maven site build:
 
-- `site-report` — contains `target/site/surefire-report.html` and assets (CSS/images)
-- `testng-emailable-report` — contains `target/surefire-reports/emailable-report.html`
-- `test-debug-zip` and `test-debug-folder` — screenshots and DOM dumps from failures
+```bash
+mvn -B -DskipTests site
+```
+
+This produces `target/site/` which includes:
+
+- `surefire-report.html` — aggregated TestNG/Surefire HTML test report
+- `xref/` and `xref-test/` — source cross-references for main and test code (clickable links from reports)
+- other standard Maven site pages (dependencies, plugins, project info)
+
+Artifacts uploaded on each run:
+
+- `site-report` — the entire `target/site` folder (contains surefire-report.html, xref, xref-test, and site assets)
+- `testng-emailable-report` — `target/surefire-reports/emailable-report.html`
+- `extent-report` — `target/extent-reports` (open `spark.html`)
+- `test-debug-zip` and `test-debug-folder` — failure screenshots and DOM dumps
 
 How to download:
 1. Go to the repository’s Actions tab.
 2. Open the run you care about (push/PR).
-3. Scroll to “Artifacts” in the Summary and download `site-report` (and/or `testng-emailable-report`).
-4. On macOS, double-click `site-report` to extract, then open `target/site/surefire-report.html` (or run `open target/site/surefire-report.html`).
+3. Scroll to “Artifacts” and download `site-report` (and/or other reports).
+4. On macOS, open `target/site/surefire-report.html` to view test results, and browse `target/site/xref-test/` for source links.
 
-Tip: If you prefer a single-file report, keep `emailable-report.html`. If you want a richer, styled page with navigation, use `site-report`.
+Tip: Prefer `site-report` for a complete, navigable website (with XRef). For a simple single-file report, use `emailable-report.html`. For a modern interactive HTML, open `extent-reports/spark.html`.
 
 ## ExtentReports (Spark)
 
@@ -142,3 +155,39 @@ Extent Reports are a popular open-source library used for generating detailed an
 Notes:
 - Screenshots/DOM captured on failures are in `target/surefire-reports/test-debug` and are referenced in the TestNG logs. The Extent TestNG adapter also shows `Reporter.log(...)` entries for quick links/context.
 - Extent is configured via `src/test/resources/extent.properties`. You can adjust output paths or add a custom Spark config if desired.
+
+## Project structure
+
+```
+pom.xml
+README.md
+testng.xml
+.github/
+	workflows/
+		ci.yml
+src/
+	main/
+		java/
+			com/
+				example/
+					App.java
+	test/
+		java/
+			base/
+				BaseTest.java
+				TestBase.java
+			com/
+				example/
+					AppTest.java
+					ContactFormTest.java
+			listeners/
+				ExtentTestListener.java
+			testcases/
+				PortfolioTests.java
+		resources/
+			extent.properties
+target/
+	site/                 # Maven Site (surefire-report.html, xref/, xref-test/, etc.)
+	extent-reports/       # ExtentReports output (spark.html)
+	surefire-reports/     # TestNG/Surefire raw outputs + test-debug artifacts
+```
