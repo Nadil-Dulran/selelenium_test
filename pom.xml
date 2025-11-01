@@ -8,6 +8,7 @@
   <artifactId>selenium-automation</artifactId>
   <version>1.0-SNAPSHOT</version>
   <name>Selenium Automation Project</name>
+  <url>https://nadil-dulran.github.io/selelenium_test/</url>
 
   <properties>
     <!-- ensure builds are reproducible across platforms by fixing encoding -->
@@ -143,6 +144,27 @@
 
   <reporting>
     <plugins>
+      <!-- Project information reports with explicit version; exclude problematic dependency-info report -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>3.9.0</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>index</report>
+              <report>summary</report>
+              <report>licenses</report>
+              <report>scm</report>
+              <report>dependencies</report>
+              <report>dependency-management</report>
+              <report>plugins</report>
+              <report>plugin-management</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+
       <!-- Generate source cross reference (XRef) for main and test sources -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
