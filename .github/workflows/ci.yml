@@ -1,5 +1,10 @@
 name: CI
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 on:
   push:
     branches: [ main ]
@@ -43,6 +48,11 @@ jobs:
           # Generate the full Maven site, including XRef and Surefire HTML report
           mvn -B -DskipTests site
 
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: target/site
+
       - name: Upload site HTML report (aggregated)
         uses: actions/upload-artifact@v4
         with:
@@ -77,3 +87,28 @@ jobs:
           name: extent-report
           path: target/extent-reports
           if-no-files-found: ignore
+
+  deploy-pages:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Add live links to summary
+        run: |
+          {
+            echo "## Live test reports";
+            echo "";
+            echo "- Site report: ${{ steps.deployment.outputs.page_url }}/surefire-report.html";
+            echo "- XRef (tests): ${{ steps.deployment.outputs.page_url }}/xref-test/index.html";
+            echo "- XRef (main): ${{ steps.deployment.outputs.page_url }}/xref/index.html";
+          } >> "$GITHUB_STEP_SUMMARY"
