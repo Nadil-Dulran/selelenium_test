@@ -1,9 +1,16 @@
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
 <suite name="CI Suite">
+  <listeners>
+    <!-- Produce a human-friendly HTML report alongside surefire outputs -->
+    <listener class-name="org.testng.reporters.EmailableReporter2"/>
+    <!-- Custom ExtentReports listener (Spark HTML report) -->
+    <listener class-name="listeners.ExtentTestListener"/>
+  </listeners>
   <test name="All Tests">
     <packages>
-      <!-- run all tests under the 'testcases' package -->
+      <!-- Run all TestNG tests under these packages -->
       <package name="testcases" />
+      <package name="com.example" />
     </packages>
   </test>
 </suite>

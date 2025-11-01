@@ -38,6 +38,25 @@ jobs:
           # Wrap tests in xvfb so Chrome can run without explicit headless flag
           xvfb-run -s "-screen 0 1920x1080x24" mvn -B -DtrimStackTrace=false test
 
+      - name: Generate Surefire HTML report
+        run: |
+          # Create aggregated HTML report at target/site/surefire-report.html
+          mvn -B -DskipTests surefire-report:report
+
+      - name: Upload site HTML report (aggregated)
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-report
+          path: target/site
+          if-no-files-found: ignore
+
+      - name: Upload TestNG emailable report
+        uses: actions/upload-artifact@v4
+        with:
+          name: testng-emailable-report
+          path: target/surefire-reports/emailable-report.html
+          if-no-files-found: ignore
+
       - name: Upload debug artifact (zip)
         uses: actions/upload-artifact@v4
         with:
@@ -50,4 +69,11 @@ jobs:
         with:
           name: test-debug-folder
           path: target/surefire-reports/test-debug
+          if-no-files-found: ignore
+
+      - name: Upload ExtentReports (Spark)
+        uses: actions/upload-artifact@v4
+        with:
+          name: extent-report
+          path: target/extent-reports
           if-no-files-found: ignore

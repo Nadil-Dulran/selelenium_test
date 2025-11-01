@@ -17,26 +17,41 @@ This will produce debug artifacts in `target/test-debug` and (because the tests 
 
 ## 2) Run tests on macOS (local)
 
-On macOS you generally don't have `xvfb`. Two options:
+On macOS you generally don't have `xvfb`. You can run tests either with a visible browser window (non-headless) or in headless mode:
 
-- Quick: run Chrome in headless mode. Open `src/test/java/testcases/PortfolioTests.java` and uncomment the headless option:
-
-```java
-// options.addArguments("--headless=new");
-```
-
-Then run:
+- Non-headless (opens a Chrome window):
 
 ```bash
 mvn test
 ```
-or
+
+- Headless (recommended for CI-like stability):
 
 ```bash
-mvn -B -DtrimStackTrace=false test
+mvn -Dheadless=true test
+```
+
+or with a few CI-style flags:
+
+```bash
+mvn -B -Dheadless=true -DtrimStackTrace=false test
 ```
 
 - Alternative: run the tests on a Linux VM or container (Docker) and use the `xvfb-run` command above to mimic CI.
+
+You can also point the test to a custom Chrome/Chromium binary by exporting `CHROME_BIN` (useful on Linux CI that installs `chromium-browser`). On macOS, do NOT use the Linux path `/usr/bin/chromium-browser`. Use one of these:
+
+```bash
+## Google Chrome (macOS)
+export CHROME_BIN="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+mvn -Dheadless=true test
+
+## Chromium (macOS, if installed)
+export CHROME_BIN="/Applications/Chromium.app/Contents/MacOS/Chromium"
+mvn -Dheadless=true test
+```
+
+Note: This project compiles with Java 21 (Temurin) as configured in CI. Ensure you have JDK 21 locally, or update the `<release>` value in `pom.xml` to `17` if you prefer Java 17.
 
 ## 3) Manually create the zip (if you want to reproduce what CI uploads)
 
@@ -68,3 +83,62 @@ Notes: the workflow installs `chromium-browser` and `xvfb` inside the runner; wh
 - Raw files: `target/surefire-reports/test-debug/` (contains `.html` DOM dumps and `.png` screenshots)
 
 If you want, I can add a simple Maven profile or a `-D` property to toggle headless mode from the command line rather than modifying test source.
+
+## Test reports (HTML)
+
+After running tests, you have several report options:
+
+- Surefire XML/text: found in `target/surefire-reports/` (default output).
+- TestNG emailable HTML report: `target/surefire-reports/emailable-report.html` (enabled via TestNG listener).
+- Maven Surefire HTML report (aggregated):
+
+	```bash
+	# generate an aggregated HTML report at target/site/surefire-report.html
+	mvn -DskipTests surefire-report:report
+	open target/site/surefire-report.html  # macOS
+	```
+
+In CI, you can upload the `target/site` folder or the `emailable-report.html` as an artifact for download.
+
+### Download/open from GitHub Actions
+
+The workflow uploads these artifacts on every run:
+
+- `site-report` — contains `target/site/surefire-report.html` and assets (CSS/images)
+- `testng-emailable-report` — contains `target/surefire-reports/emailable-report.html`
+- `test-debug-zip` and `test-debug-folder` — screenshots and DOM dumps from failures
+
+How to download:
+1. Go to the repository’s Actions tab.
+2. Open the run you care about (push/PR).
+3. Scroll to “Artifacts” in the Summary and download `site-report` (and/or `testng-emailable-report`).
+4. On macOS, double-click `site-report` to extract, then open `target/site/surefire-report.html` (or run `open target/site/surefire-report.html`).
+
+Tip: If you prefer a single-file report, keep `emailable-report.html`. If you want a richer, styled page with navigation, use `site-report`.
+
+## ExtentReports (Spark)
+
+This project integrates ExtentReports for a modern, interactive HTML report.
+
+Extent Reports are a popular open-source library used for generating detailed and customizable test reports in automation testing. The "Spark" in this context refers to the ExtentSparkReporter, which is a specific type of reporter available within the Extent Reports framework.
+
+- Generated automatically by TestNG listener into:
+	- `target/extent-reports/spark.html`
+
+- Run tests (examples):
+	```bash
+	mvn test
+	# or headless
+	mvn -Dheadless=true test
+	```
+
+- Open locally on macOS:
+	```bash
+	open target/extent-reports/spark.html
+	```
+
+- In GitHub Actions, an `extent-report` artifact is uploaded (the whole `target/extent-reports` folder). Download it and open `spark.html`.
+
+Notes:
+- Screenshots/DOM captured on failures are in `target/surefire-reports/test-debug` and are referenced in the TestNG logs. The Extent TestNG adapter also shows `Reporter.log(...)` entries for quick links/context.
+- Extent is configured via `src/test/resources/extent.properties`. You can adjust output paths or add a custom Spark config if desired.

@@ -1,11 +1,11 @@
 package com.example;
 
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 public class AppTest {
     @Test
-    void testApp() {
-        assertTrue(true);
+    public void testApp() {
+        Assert.assertTrue(true);
     }
 }

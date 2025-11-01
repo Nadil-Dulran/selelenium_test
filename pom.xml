@@ -23,13 +23,7 @@
       <version>4.26.0</version>
     </dependency>
 
-    <!-- JUnit 5 -->
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter</artifactId>
-      <version>5.11.3</version>
-      <scope>test</scope>
-    </dependency>
+    <!-- JUnit 5 (removed) -->
 
     <!-- TestNG: required by tests under src/test/java using TestNG annotations -->
     <dependency>
@@ -45,6 +39,25 @@
       <artifactId>webdrivermanager</artifactId>
       <version>5.9.2</version>
     </dependency>
+
+    <!-- ExtentReports core (HTML report) -->
+    <dependency>
+      <groupId>com.aventstack</groupId>
+      <artifactId>extentreports</artifactId>
+      <version>5.1.1</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Bind SLF4J to a simple logger in tests to avoid StaticLoggerBinder warnings -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.7.36</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Note: Selenium DevTools dependency omitted to avoid resolution issues; the CDP version warning is informational. -->
+
   </dependencies>
 
   <build>
@@ -58,6 +71,8 @@
           <release>21</release>
           <!-- ensure the compiler uses the project's configured encoding -->
           <encoding>${project.build.sourceEncoding}</encoding>
+          <!-- Disable annotation processing since project does not use Lombok or other processors -->
+          <proc>none</proc>
         </configuration>
       </plugin>
 
@@ -125,4 +140,15 @@
       </plugin>
     </plugins>
   </build>
+
+  <reporting>
+    <plugins>
+      <!-- Generate an HTML report from Surefire test results under target/site/surefire-report.html -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+        <version>3.2.5</version>
+      </plugin>
+    </plugins>
+  </reporting>
 </project>

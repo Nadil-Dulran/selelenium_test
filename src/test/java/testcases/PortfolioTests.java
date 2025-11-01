@@ -18,6 +18,7 @@ import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import org.testng.Reporter;
 
 public class PortfolioTests {
 
@@ -32,7 +33,29 @@ public class PortfolioTests {
         ChromeOptions options = new ChromeOptions();
         options.setPageLoadStrategy(PageLoadStrategy.EAGER);
         options.addArguments("--start-maximized");
-        // options.addArguments("--headless=new");
+        // Allow headless mode via -Dheadless=true or env CHROME_HEADLESS=true
+        boolean headless = Boolean.parseBoolean(System.getProperty("headless", System.getenv().getOrDefault("CHROME_HEADLESS", "false")));
+        if (headless) {
+            options.addArguments("--headless=new");
+            options.addArguments("--disable-gpu");
+        }
+        // Allow specifying Chromium/Chrome binary path via env CHROME_BIN
+        String chromeBin = System.getenv("CHROME_BIN");
+        boolean usedCustomBinary = false;
+        if (chromeBin != null && !chromeBin.isBlank()) {
+            try {
+                java.nio.file.Path p = java.nio.file.Path.of(chromeBin);
+                if (java.nio.file.Files.exists(p)) {
+                    options.setBinary(chromeBin);
+                    usedCustomBinary = true;
+                } else {
+                    System.out.println("WARN: CHROME_BIN points to non-existent path: " + chromeBin + " — ignoring.");
+                }
+            } catch (RuntimeException e) {
+                System.out.println("WARN: Failed to evaluate CHROME_BIN='" + chromeBin + "' — ignoring. " + e.getMessage());
+            }
+        }
+        System.out.println("Launching Chrome with headless=" + headless + ", binary=" + (usedCustomBinary ? chromeBin : "<default>"));
         driver = new ChromeDriver(options);
         // Increase explicit wait timeout to be more tolerant of slow network/pages
         wait = new WebDriverWait(driver, Duration.ofSeconds(30));
@@ -61,7 +84,7 @@ public class PortfolioTests {
                     });
                 }
             }
-        } catch (Exception ignored) { }
+        } catch (IOException ignored) { }
         if (driver != null) driver.quit();
     }
 
@@ -245,14 +268,16 @@ public class PortfolioTests {
             // also write into surefire reports area so CI can pick it up even if Maven stops early
             Path domFile2 = surefireDir.resolve(name + "-" + stamp + ".html");
             Files.writeString(domFile2, dom, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            Reporter.log("DOM saved: " + domFile2.toString());
 
             // Save screenshot (if supported)
-            if (driver instanceof TakesScreenshot) {
-                byte[] bytes = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
+            if (driver instanceof TakesScreenshot ts) {
+                byte[] bytes = ts.getScreenshotAs(OutputType.BYTES);
                 Path imgFile = outDir.resolve(name + "-" + stamp + ".png");
                 Files.write(imgFile, bytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
                 Path imgFile2 = surefireDir.resolve(name + "-" + stamp + ".png");
                 Files.write(imgFile2, bytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+                Reporter.log("Screenshot saved: " + imgFile2.toString());
             }
         } catch (IOException | WebDriverException e) {
             // Do not fail the test further because debug capture failed; just log to stdout
