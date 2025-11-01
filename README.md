@@ -1,4 +1,4 @@
-# Running tests & CI locally
+# Running Selenium + TestNG tests & CI locally
 
 This project runs Selenium + TestNG tests under Maven. The repository includes a GitHub Actions workflow (`.github/workflows/ci.yml`) that runs tests on `ubuntu-latest`, wraps the test run with Xvfb so Chrome can run in CI, and uploads debug artifacts produced by tests (HTML DOM dumps + screenshots) from `target/surefire-reports/test-debug`.
 
