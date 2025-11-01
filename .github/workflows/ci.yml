@@ -98,6 +98,9 @@ jobs:
     steps:
       - name: Setup Pages
         uses: actions/configure-pages@v4
+        with:
+          # Attempt to automatically enable GitHub Pages with GitHub Actions as the build source
+          enablement: true
 
       - name: Deploy to GitHub Pages
         id: deployment
