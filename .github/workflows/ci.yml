@@ -38,10 +38,10 @@ jobs:
           # Wrap tests in xvfb so Chrome can run without explicit headless flag
           xvfb-run -s "-screen 0 1920x1080x24" mvn -B -DtrimStackTrace=false test
 
-      - name: Generate Surefire HTML report
+      - name: Build Maven site (XRef + reports)
         run: |
-          # Create aggregated HTML report at target/site/surefire-report.html
-          mvn -B -DskipTests surefire-report:report
+          # Generate the full Maven site, including XRef and Surefire HTML report
+          mvn -B -DskipTests site
 
       - name: Upload site HTML report (aggregated)
         uses: actions/upload-artifact@v4
